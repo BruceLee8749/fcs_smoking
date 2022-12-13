@@ -1,11 +1,7 @@
 # -*- coding:utf-8 -*-
-from telnetlib import EC
-
 from openpyxl.styles import PatternFill
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
-from selenium.webdriver.support.wait import WebDriverWait
-
 from tools import *
 import requests
 import traceback
@@ -157,10 +153,6 @@ class BrowserAction(CellColor):
         except:
             # log.exception(traceback.format_exc())
             raise
-
-    def switch_window(self):  # iframe切换
-        WebDriverWait(self.driver, 20).until(
-            EC.frame_to_be_available_and_switch_to_it((By.XPATH, "//*[name()='object']")))
 
     def element_input(self, loc, value, clear=1):  # 改变输入方法
         """
