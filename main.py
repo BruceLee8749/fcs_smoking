@@ -1,7 +1,11 @@
 # -*- coding:utf-8 -*-
+from telnetlib import EC
+
 from openpyxl.styles import PatternFill
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.webdriver.support.wait import WebDriverWait
+
 from tools import *
 import requests
 import traceback
@@ -11,9 +15,6 @@ from selenium import webdriver
 from time import sleep
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-
 
 pro_path = f"{os.path.dirname(__file__)}"
 path = get_conf('FCS', '测试结果文件夹')
@@ -39,6 +40,7 @@ class Test(CellColor):
 
     def send_request(self, i, file, data, check_info):
         try:
+            sleep(20)
             r_body = requests.post(url=self.url, files={'file': open(file, 'rb')}, data=data).json()
             # responseBody的json形式
             check_info = eval(check_info)  # 检查信息转换为字典，方便对比
@@ -157,7 +159,8 @@ class BrowserAction(CellColor):
             raise
 
     def switch_window(self):  # iframe切换
-        WebDriverWait(self.driver, 20).until(EC.frame_to_be_available_and_switch_to_it((By.XPATH, "//*[name()='object']")))
+        WebDriverWait(self.driver, 20).until(
+            EC.frame_to_be_available_and_switch_to_it((By.XPATH, "//*[name()='object']")))
 
     def element_input(self, loc, value, clear=1):  # 改变输入方法
         """
@@ -185,20 +188,6 @@ class BrowserAction(CellColor):
         self.find_ele("//input[@id='currentPage']").send_keys(Keys.ENTER)  # 页码输入完成后按enter键
 
     @classmethod
-    def image_path_preview(cls, file_path, row_num, column, sheet_name, capture_type):
-        """进行截图，并将截图以case_id+.png方式命名，写入结果表对应单元格，并附加超链接格式"""
-        workbook = load_workbook(file_path)
-        sheet = workbook[sheet_name]
-        case_id = sheet.cell(row=row_num, column=1).value
-        image_path = os.path.join(project_path, capture_type, str(case_id) + '.png')  # 截图以case_id+.png方式命名
-        sheet.cell(row_num, column, str(case_id) + '.png').hyperlink = image_path  # 截图写入结果表对应单元格，并附加超链接格式
-        workbook.save(file_path)
-        return image_path
-
-    def capture_image(self, loc, file_name):
-        self.find_ele(loc).screenshot(file_name)
-
-    @classmethod
     def image_path(cls, file_path, row_num, capture_type, sheet_name):
         workbook = load_workbook(file_path)
         sheet = workbook[sheet_name]
@@ -215,8 +204,6 @@ class BrowserAction(CellColor):
         """判断截图文件是否存在于期望截图文件夹中，如果不存在，则保存到期望截图文件夹中，否则，保存到实际截图文件夹中"""
         workbook = load_workbook(file_path)
         sheet = workbook[sheet_name]
-        print(sheet)
-        print(file_path)
         case_id = sheet.cell(row=row_num, column=1).value
         ex_image_path = self.image_path(file_path, row_num, '期望截图', sheet_name)
         ac_image_path = self.image_path(file_path, row_num, '实际截图', sheet_name)
@@ -233,6 +220,7 @@ class BrowserAction(CellColor):
                 sheet.cell(row_num, 12, 'pass')  # 对比值等于0，则标记pass
                 sheet.cell(row_num, 12).fill = self.fill_green  # 正确结果结果标记绿色
             workbook.save(file_path)  # 保存结果表
+            return result
         else:
             self.capture_image_function(ex_image_path)  # 如果不存在，将截图放入期望截图文件夹中
             sheet.cell(row_num, 10, str(case_id) + '.png').hyperlink = ex_image_path  # 以超链接格式写入结果表对应的单元格中
@@ -277,7 +265,7 @@ class BrowserAction(CellColor):
         打开右键菜单
         """
         try:
-            return ActionChains(self.driver).context_click(self.find_ele(loc))
+            ActionChains(self.driver).context_click(loc).perform()
         except:
             # log.exception(traceback.format_exc())
             raise

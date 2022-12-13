@@ -1,92 +1,104 @@
-# FCS_smoking
+## 项目简介  
+永中公司的DCS和FCS产品接口参数多达84个，现有的测试工具如Postman和JMeter无法满足庞大的测试需要，故针对公司产品开发DCS&FCS自动化接口测试工具。
+测试工具基于Python的第三方库requests和openpyxl开发，具有良好的可维护性、可拓展性和易用性，同样也在健壮性和容错性做出了优化。
+测试用例编写基于公司员工熟悉的Excel表格，大大降低接口测试入门门槛，也方便管理测试用例。
 
-fcs预览质量冒烟测试
 
-## Getting started
+## 前置条件
+####环境依赖
+```shell
+本脚本仅限于在Windows下chrome浏览器执行
+```
+####需要安装的软件
+```shell
+pycharm 
+chrome 
+chromedriver 
+python3.7，勾选Add Python 3.x to PATH 
+驱动下载及放置位置
+1.chrome版本查看方式：在浏览器中输入chrome://version/ 查看chrome版本
+2.再到http://chromedriver.storage.googleapis.com/index.html中下载相应版本的chromedriver
+3.放到python的安装目录下
+```
+### 依赖的python第三方库
+```shell
+selenium
+pypiwin32
+zipp
+pillow
+numpy
+opencv-python
+shutil
+configparser
+openpyxl
+math
+operator
+functools
+可直接使用setup.bat运行安装
+如果安装失败，先执行下python -m pip install --upgrade pip升级pip在进行三方库安装
+```
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+## 目录结构说明
+```shell
+1.FCS测试用例:存放测试用例的excel文件
+2.FCS测试结果：存放测试结果的excel文件
+3.conf.ini:配置文件：地址、数据管理
+4.main.py：核心文件，主要用于串跑和发送请求、读取excel表，浏览器页面操作，截图及对比等方法
+5.tool.py:内部调用的工具，写入log，读取ini文件，excel表读取、写入方法，系统操作方法
+5.fcs_convert.py: convert_run():参数接口转换  convert_rerun():参数接口转换失败后的用例重跑
+6.case_run.py:执行所有测试用例，并产生html测试报告
+```
 
-## Add your files
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+## 配置文件操作说明
+```shell
+conf.ini：配置文件
+    - 测试接口：测试目标服务器以及具体接口，若要修改主要修改服务器地址
+    - 指定文件：若为空，运行测试用例文件夹下所有xlsx文件，若为多值，请用“空格”连接，如：aaa.xlsx bbb.xlsx
+    - 指定工作表：若为空，运行该表格下所有工作表，若为多值，请用“空格”连接，如：sheet1 sheet2
+    - 存放文件夹：测试文件存放的文件夹名，为了统一管理，大家把测试文件放到一个文件夹内
+    - 概括为空时，运行所有的，多个值请用“空格”连接
+    
+        | 类型 | 文件空值 | 文件单值 | 文件多值 |
+        | :----: | :----: | :----: | :----: |
+        | 工作表空值 | 所有 | 该文件下所有 |该些文件下所有|
+        | 工作表单值 | 所有 | 该文件夹下该工作表 |该些文件下所有|
+        | 工作表多值 | 所有 | 该文件夹下该些工作表 |该些文件下所有|  
+```
+## 测试用例编写
+- 用例名：自定义用例名以区分，举个例子：isDownload_1_doc_1，isDownload参数为1，doc转换成convertType为1
+- 本地文件路径：只用写测试文件夹名
+- 转换类型：即convertType
+- 其他参数：**请严格按照JSON格式书写，英文状态下符号**，如{"isPrint": 1,"isCopy":0, "isZip": 0}，如不需要填写参数，直接写{}
+- 验证点：**请严格按照JSON格式书写，英文状态下符号**，如responseBody是嵌套的JSON格式，验证点无需嵌套，单一JSON格式即可
+- 测试用例过多的话，可以分多个excel表和工作表编写测试用例，用于区分
+## 结果表解读
+- 返回body：记录返回的responseBody，用于确认的结果
+
+- 测试结果：
+    - 通过：标记绿色
+    - 失败：标记红色，和验证点不一致
+    - 阻塞：标记黄色，服务端故障导致无法进行测试
+    - 格式错误：标记灰色，请检查你的参数和验证点，是否存在JSON格式错误
+
+- 转换后文件地址：生成的URL的超链接，直接点击可查阅线上转换好的文件，DCS接口若是多个文件，会分多个显示
+- 跳转页码：跳转到其他页码
+- 期望截图：作为截图对比标准，保留正确截图后，不再变动
+- 实际截图：每次版本更新，进行实际截图，与期望截图进行对比
+- 截图对比结果：实际截图预期望截图进行对比。对比值越大，差异越大。
+
+## 注意事项
+```shell
+1.脚本启动时,测试用例excel、测试结果excel文件请关闭,否则脚本运行时会报错
+
+2.脚本启动时,Download文件夹请关闭,否则脚本运行时会报错
+
+3.本脚本执行时间大概为xx小时左右,期间禁止操作设备,防止脚本执行出现异常
+
+4.执行完成后FReport文件夹下进行查看测试报告用例通过在90%以上本次部署即为通过
+
+5.本脚本有两种方式查看错误情况:测试结果excel和log日志
 
 ```
-cd existing_repo
-git remote add origin http://git.yozosoft.io/tes_dep/fcs_smoking.git
-git branch -M main
-git push -uf origin main
-```
 
-## Integrate with your tools
-
-- [ ] [Set up project integrations](http://git.yozosoft.io/tes_dep/fcs_smoking/-/settings/integrations)
-
-## Collaborate with your team
-
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!).  Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.

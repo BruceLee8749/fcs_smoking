@@ -9,8 +9,6 @@ import shutil
 import math
 import operator
 from functools import reduce
-import zipfile
-
 
 LOG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
 DATE_FORMAT = "%m/%d/%Y %H:%M:%S %p"
@@ -205,19 +203,6 @@ def assert_pic_exist_or_not(pic_path):
     """
     flag = os.path.lexists(pic_path)
     return flag
-
-
-def un_zip(unzip):  # 判断压缩文件里是否有文件
-    zip_list2 = []
-    zip_file = zipfile.ZipFile(get_download_path() + '\\' + unzip)
-    zip_list1 = zip_file.namelist()  # 查看zip里的所有文件
-    for i in range(len(zip_list1)):
-        try:
-            zip_list2.append(zip_list1[i].encode('cp437').decode('gbk'))
-        except:
-            zip_list2.append(zip_list1[i].encode('utf-8').decode('utf-8'))
-    # 服务器编码方式变更，转换成unicode，压缩前是什么编码，使用什么编码encode再decode回gbk、utf-8
-    return zip_list2
 
 
 def get_file_size(file_path):
