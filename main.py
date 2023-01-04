@@ -11,6 +11,9 @@ from selenium import webdriver
 from time import sleep
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
 
 pro_path = f"{os.path.dirname(__file__)}"
 path = get_conf('FCS', '测试结果文件夹')
@@ -154,6 +157,10 @@ class BrowserAction(CellColor):
             # log.exception(traceback.format_exc())
             raise
 
+    def switch_window(self):  # iframe切换
+        WebDriverWait(self.driver, 20).until(
+            EC.frame_to_be_available_and_switch_to_it((By.XPATH, "//*[name()='object']")))
+
     def element_input(self, loc, value, clear=1):  # 改变输入方法
         """
         输入框中前清除内容，再输入
@@ -261,3 +268,12 @@ class BrowserAction(CellColor):
         except:
             # log.exception(traceback.format_exc())
             raise
+
+#
+# if __name__ == '__main__':
+#     url = "http://192.168.80.116:8092/fcsserver/view/preview/IbKuS8g_OQgxYU38b94QHYU8iOdM633wGfuH5X_8Gh65m0vg9BTHkmTx8_qDdUlgXvqYwz1uDRT6Ny7mkuHlCGU2XQRoOqxkKK0iN2TlBPwYRRZjQH9UHHSp3HbqLTxaIksTgyeavqJr0issgSLPzecgTiAcY5fi-BLB5WcjDJsYm9SiRHEtjC_Wi6CQ-8vyUC7n8QAsdY9GEvwH4L3pTnK2GhFw66wCqeXM1p0PciigR1sVOB7YNyqhMLpF9E4fIWPmbpIBpAj9Ub_BU7Ckm77jmj65F5JRzDY1yvGA8NMLzzobzUwWfFDhkLg3EK4NnidKiglUlm9UKfKqgnawNcaNONfiZJLVXtGvK9QmcaZ091M3zzikIR-bPlzwmP1qozOpemU2Ff-i5Vy-7TgxPAaFm-khjX7Ku-MPkKuD17Je4EWGC4tLvrwoW62w7OFmOErhnlQ4jLLtSXx4er5_sfjwoAKZGJfhtSRziLCDfiFbzH-_kI2NTwEJLP7aPJwzdtqixJbJL6hDHKDGtNnYLBaOqMXTYJIN/"
+#     action = BrowserAction()
+#     action.open_bro(url)
+#     action.switch_window()
+#     data = action.get_ele_attribute("//*[name()='svg']/*[name()='g']/*[name()='g']/*[name()='text' and text()='A']/..", "font-family")
+#     print(data)

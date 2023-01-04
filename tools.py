@@ -220,19 +220,28 @@ def get_file_size(file_path):
     return size
 
 
-def url_replace(data1):
+def url_replace(data1):  # 修改url获取下载地址
     data2 = data1.replace("preview", "download")
     return data2
 
 
-def rename_zip(file_name):
+def rename_zip(file_name):  # 重命名文件
     unzip_name = os.path.splitext(file_name)
     full_zip_name = unzip_name[0] + ".zip"
-    print(full_zip_name)
+    # print(full_zip_name)
     return full_zip_name
 
 
-def download_zip(zip_url, filename):
+def file_value(file_path, file_type=0):  # 默认获取文件名+后缀|file_type=1只获取文件名
+    if file_type == 1:
+        postfix = os.path.splitext(file_path)[0]
+    else:
+        postfix = os.path.splitext(file_path)[-1]
+    # print(postfix)
+    return postfix
+
+
+def download_zip(zip_url, filename):  # 下载数据包
     zip_url2 = url_replace(zip_url)
     r = requests.get(zip_url2)  # 发送请求
     file_path = get_download_path() + "\\" + rename_zip(filename)
@@ -256,28 +265,35 @@ def un_zip(unzip):  # 判断压缩文件里是否有文件
 
 
 def click_json(unzip_name):  # 解析数据包，获取json路径
-    json_path = ""
+    json_path = []
     zip_file = zipfile.ZipFile(get_download_path() + '\\' + rename_zip(unzip_name))
     zip_list = zip_file.namelist()  # 查看zip里的所有文件
     for i in zip_list:
         try:
-            if "0.json" in i:
+            if file_value(unzip_name, file_type=1) not in i:
                 file_name = i.encode('cp437').decode('GBK')
-                # print(i)
-                # print(file_name)
-                # print(i[:(i.index('/'))])
-                # print(file_name[:(file_name.index('/'))])
-                zip_file.extract(i, get_download_path())
-                zip_file.close()
-                json_path = get_download_path() + "\\" + file_name[:(file_name.index('/'))] + "\\" + "0.json"
-                rename(get_download_path() + "\\" + i[:(i.index('/'))], get_download_path() + '\\' + file_name[:(file_name.index('/'))])
-                break
+                if "json" in i:
+                    print(i)
+                    print(file_name)
+                    # print(i[:(i.index('/'))])
+                    # print(file_name[:(file_name.index('/'))])
+                    zip_file.extract(i, get_download_path())
+                    # zip_file.close()  # 解压单个文件时使用，多个文件注释
+                    json_path.append(get_download_path() + "\\" + file_name)
+                    if i == zip_list[-1]:
+                        rename(get_download_path() + "\\" + i[:(i.index('/'))], get_download_path() + '\\' + file_name[:(file_name.index('/'))])
+            else:
+                if "json" in i:
+                    print(i)
+                    zip_file.extract(i, get_download_path())
+                    # zip_file.close()  # 解压单个文件时使用，多个文件注释
+                    json_path.append(get_download_path() + "\\" + i)
         except:
             pass
     return json_path
 
 
-def read_json(path):
+def read_json(path):  # json读取
     file = open(path, 'r', encoding='utf-8')
     papers = []
     for line in file.readlines():
@@ -288,10 +304,12 @@ def read_json(path):
 
 
 if __name__ == '__main__':
-    url = "http://192.168.80.116:8092/fcsserver/view/preview/7nWwsORD8Jr7piWmg2qlG0d-GMCa6KLB5-6jdnSdwCOXD6hxWGezB1WuDkF6Y_AtT1R3TMk10nW2ipX2hxEl0Wp_dWz-Anzr3StyF7eixGQt2dANs1Jgcw2-zkqymatwYbKIoiEN9iAPPuLGF4dWB67DVPrapg8E1j7E-G09KpndmhYAsKfNA_fDojLXqPob0w7DdXaoj5g0qucZQoHfJm3yBIT97SqeDB_CTV7bNRk0GuCj4Qlco_Jr-1pxTQIFu4J3cms2f49C3O3e1D2xSZ6-SMOx-TFm6bbV73vDiMUeFYysU0GlGOQqGNo1Hj1RngAv734wl7LmrAE7XDUy5ZHPjIdvbnI9H1X9viJ9J4WMHXTSf8gAcvbFFTB27mqL6YjF72RW25VPp1ryQBSERaf0aRFTV_J5NGelQoW_RVALh-GrFXebJ9M25pxqkgsLA7geMLAO0VYvgsCoFdEO6Wi_g56KnCJ9k4MQhyqGK13N-Mx6Gz04YdgAoY6S8z184Unup_k2qz4NbGqCcg62yyWQ8ImkK6h1jz1m0v8lmxw=/"
+    # url = "http://172.18.21.30:8080/fcscloud/view/preview/zb31VOAlUxhT6cG-qvEvJVCFaUOZLL5eGg8Kgp5gvoG8syUdW6hp8QELF3nPYfPs3Z8pKb2OFpNtqkQj_XsKhl_JnjcFcLi5SbZGFpR7egPe8855q-p09pZBSiEDX0M8FolDiU3oDtii41R0rszOMbE_ZTJlO65NQHKQqZT6iGJwFROh6Y0Q2ZiV16mK26YgX51ZRoEt61FCeo35fveJH5y7XhbB7OM3FqQmYxiNVu4fmC210W8tckzK2PiYBaLLPIb4QDbHxo7x_g7_GbKnibV09UPKt0Ml1VRFMhXHA99YNCkxNnGTleDQG8uZnH0kzsLZAuEhm6Zqx76QSA1sEv0bVCcJsFea5euI2Uyo90s4lpQWSsKujn8PncqKJFFY4L-svL70AD9x-v8C9NcuaqTMf7RAq9HTeJ1eV_wNYcgxTbOalbpAjIgMpDf-k_JR1XPEiiJZWH7uYe892vRkQaK1rFPq2yyx5PbR6vgosMmTP_sBrz4FoLdah5kNPHnGMNRpO_CLRFAQfKTTc2-6J-nW6mBVE-evFxCGgU8GXdbMDNtDHgrh9s9qjuLdll1Zn_giobs7w7zHu8fWEcgLPQ-ie1GNYsKhmHhIVrJ-DIrNlRXbIzxy_g==/"
+    url = "http://192.168.80.116:8092/fcsserver/view/preview/6jPHqWhQKDlmmTWOIEtAGXgqG3PLWWFdbulXctMlXRSOpOaVuawafR1eOeOtpiKDodUfjk8-QZIZ7VLWOO56aDu9h81MFLFGqSi_kiJLj1xra-k3UL9Jm4LPx91FRSyQpDmmNBOokTMdTCiiLDKeZYePVmQ4OMJ3eSJKWe02fw_WtAQfxBXESK8WpUgLYy_AFqxhFTc4-0jJH7EqXxdn8TfQa_4XsBUP4c6G8bTNVu0VakcxQZxLDzPT6u6ZE4FlU54IylVJx6ljHV2rvu7Y7VWQjqTYUfaMvvghAU76QBdKfBZuBvK2MDK-2RMDhy7mG0NQzxZUgggiEwSETTI61TRDzEstf2kZQ7JspAxgvLBhsZGl3jaRYvJADcMwEbRrRufXS_3Zm1ewW2CerET2_1eVFG9eT5KRSDhDFva-RzpJV-TjIWfJ-CKXw8pM3OeuzfNLP7FWriegihBB0Wan02fDc9dxfGCgzMCOFUULO1KSAvVNkOswxv9YoZXLGXtUHiJl5E-gE8JfM-ODKv7n4dmZbvjlIQxoknN2fUbjm6o=/"
     name = "wp_插入ole对象.docx"
     rename_zip(name)
     download_zip(url, name)
     data = click_json(name)
-    read_json(data)
-    print(read_json(data)[0]['usedFonts'])
+    print(data)
+    # read_json(data)
+    # print(read_json(data)[0]['usedFonts'])
